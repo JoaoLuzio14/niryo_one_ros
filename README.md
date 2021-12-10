@@ -26,13 +26,14 @@ sudo apt-get install ros-kinetic-robot-state-publisher ros-kinetic-moveit ros-ki
 ```
 You'll also need to install an additional Python module :
 ```
-sudo -H pip install jsonpickle
+sudo apt-get update -y
+sudo apt-get install -y python-jsonpickle
 ```
 Create a catkin workspace and clone Niryo One ROS stack :
 ```
 mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws/src
-git clone https://github.com/NiryoRobotics/niryo_one_ros.git .
+git clone https://github.com/JoaoLuzio14/niryo_one_ros.git .
 ```
 Build the packages :
 ```
@@ -41,7 +42,7 @@ catkin_make
 ```
 Don't forget to use those commands before you try to launch anything (you can add them in your .bashrc) :
 ```
-source /opt/ros/kinetic/setup.bash
+source /opt/ros/kinetic/setup.bash # If not already added during ROS Kinetic installation
 source ~/catkin_ws/devel/setup.bash
 ```
 You can now launch Rviz with Niryo One (only display mode with some cursors to move the joints):
