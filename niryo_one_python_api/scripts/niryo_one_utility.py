@@ -48,7 +48,11 @@ def ForwardKinematics(t1, t2, t3, t4, t5, t6):
 	tf_06 = np.dot(tf_01, tf_16)
 	#print(tf_06)
 
-	return tf_06
+	position = np.dot(tf_06, np.transpose(np.array([0, 0, 0, 1])))
+	position = position[0:3]
+
+	return position
+
 
 
 
