@@ -26,9 +26,9 @@ def ForwardKinematics(t1, t2, t3, t4, t5, t6):
 					  [   0,  math.sin(t4),  math.cos(t4),    30],
 					  [   0,             0,             0,     1]])
 	# Rotation around Y axis
-	tf_45 = np.array([[  math.cos(t5),    0, math.sin(t5),   180],
+	tf_45 = np.array([[  math.cos(t5),    0, -math.sin(t5),   180],
 					  [             0,    1,            0,     0],
-					  [ -math.sin(t5),    0, math.cos(t5),     0],
+					  [ math.sin(t5),    0, math.cos(t5),     0],
 					  [             0,    0,            0,     1]])
 	# Rotation around X axis
 	tf_56 = np.array([[   1,             0,             0,  23.7],
