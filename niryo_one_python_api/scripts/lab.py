@@ -42,10 +42,10 @@ joint_limits = np.matrix([  [   -175*math.pi/180,   175*math.pi/180],
                             [   -100*math.pi/180,   110*math.pi/180],
                             [ -147.5*math.pi/180, 147.5*math.pi/180]])
 
-matrix_origin = np.matrix([ [-1.031, -0.576, -0.670, -0.027, -0.354, -1.073],              #origin_position_1
-                            [-1.031, -0.728, -0.673,  0.524, -0.111, -1.518],              #origin_position_2
-                            [-1.031, -0.900, -0.610,  0.638, -0.020, -1.665],              #origin_position_3
-                            [-1.031, -1.066, -0.531,  0.381,  0.015,  1.620]])             #origin_position_4
+matrix_origin = np.matrix([  [-1.03, -0.58, -0.66, 0, -0.31, -1],               #origin_position_1
+                             [-1.03, -0.74, -0.63, 0, -0.175, -1],              #origin_position_2
+                             [-1.03, -0.905, -0.575, 0, -0.075, -1],            #origin_position_3
+                             [-1.03, -1.07, -0.499, 0, 0.02, -1]    ] )         #origin_position_4
 
 
 matrix_target_up = np.matrix([  [  0.178, -0.927, -0.323,  0.003, -0.294, -1.326],             #target_up_1
