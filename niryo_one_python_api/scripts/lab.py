@@ -28,6 +28,8 @@ print ('\n \nCalibration finished !\n')
 n.activate_learning_mode(False)
 print ('\n \nLearning mode activated?')
 print (n.get_learning_mode())
+mean_val = 0.0
+sigma = 0.005
 
 default_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  
 home_position = [0.0, 0.0, -math.pi/4.0, 0.0, math.radians(45), 0.0]
@@ -68,24 +70,15 @@ n.move_joints(home_position)
 try:
     for i in range(4): # Execute the task
        
-        n.move_joints(origin_up)
-        n.move_joints(origin[i])
+        error = np.random.normal(mean_val, sigma, 6)
+        n.move_joints(origin_up + error)
+        n.move_joints(origin[i] + error)
         time.sleep(1)
-        n.move_joints(origin_up)
-        n.move_joints(target_up[i])
-        n.move_joints(target_position[i])
+        n.move_joints(origin_up + error)
+        n.move_joints(target_up[i] + error)
+        n.move_joints(target_position[i] + error)
         time.sleep(1)
-        n.move_joints(target_up[i])
-
-        #//////////////////////////
-        
-    # Final Dance
-    n.move_joints(home_position)
-    joints = [0.0, 0.0, -math.pi/4.0, 0.0, -0.5, 0.0]
-    n.move_joints(joints)
-    joints = [0.0, 0.0, -math.pi/4.0, 0.0, 1.2, 0.0]
-    n.move_joints(joints) 
-    n.move_joints(home_position)
+        n.move_joints(target_up[i] + error)
     
 except  NiryoOneException  as e:
     print(e)
