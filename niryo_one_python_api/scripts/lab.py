@@ -1,86 +1,105 @@
-#!/usr/bin/env python
+#!/usr/bin/env  python
 
 '''
-
 - Robotics Course - Instituto Superior Tecnico
 - Lab 1 (P2 - 2021/2022)
 - 93096 - Joao Miguel Barradas Luzio
 - 93125 - Marcelo Jose da Silva Braco Forte
 - 93771 - Filipe De Jesus Pereira Ferraz
-
 '''
 
+from niryo_one_python_api.niryo_one_api import *
 import  rospy
 import  math
 import  time
 import numpy as np 
-from niryo_one_python_api.niryo_one_api import *
 
-rospy.init_node('niryo_one_example_python_api')
+# Generates errors for each joint given a Gaussian distribution
+def joint_errors(mean, deviation):
 
-print("\n \n--- Start")
+    errors = np.random.normal(mean, deviation, 6)
+    return errors
 
-n = NiryoOne ()
-n.calibrate_auto ()
-time.sleep(1)
-print ('\n \nCalibration finished !\n')
+'''
+This script will grab the 4 pilled blocks
+and move them to another chosen location.
+'''
 
-n.activate_learning_mode(False)
-print ('\n \nLearning mode activated?')
-print (n.get_learning_mode())
-mean_val = 0.0
-sigma = 0.005
+# Define error parameters (just random error, ignoring joint bias)
+mean_val = 0.0 # Centered Value
+stand_dev = 0.002 # 0.001 < SD < 0.005 for realistic variations
+#P(-0.004 < X < 0.004) = 0.95
+
+# Define the joint angles for the desired trajectory
 
 default_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  
 home_position = [0.0, 0.0, -math.pi/4.0, 0.0, math.radians(45), 0.0]
-origin_up = [-1.031, -0.4, -0.669, -0.027, -0.491, -1.002]
+origin_up = [-1.03, -0.42, -0.67, 0, -0.465, -1]
 
-joint_limits = np.matrix([  [   -175*math.pi/180,   175*math.pi/180],   
-                            [    -90*math.pi/180,  36.7*math.pi/180],
-                            [    -80*math.pi/180,    90*math.pi/180],
-                            [   -175*math.pi/180,   175*math.pi/180],
-                            [   -100*math.pi/180,   110*math.pi/180],
-                            [ -147.5*math.pi/180, 147.5*math.pi/180]])
+matrix_origin = np.matrix([ [ -1.030, -0.580, -0.660, 0, -0.310, -1],            #origin_position_1
+                            [ -1.030, -0.740, -0.630, 0, -0.175, -1],            #origin_position_2
+                            [ -1.030, -0.905, -0.575, 0, -0.075, -1],            #origin_position_3
+                            [ -1.030, -1.070, -0.499, 0,  0.020, -1]])           #origin_position_4
 
-matrix_origin = np.matrix([  [-1.03, -0.58, -0.66, 0, -0.31, -1],               #origin_position_1
-                             [-1.03, -0.74, -0.63, 0, -0.175, -1],              #origin_position_2
-                             [-1.03, -0.905, -0.575, 0, -0.075, -1],            #origin_position_3
-                             [-1.03, -1.07, -0.499, 0, 0.02, -1]    ] )         #origin_position_4
+matrix_target_up = np.matrix([  [ 0.238, -0.450, -0.625, 0, -0.500, 0.230],             #taget_up_1
+                                [ 0.206, -0.554, -0.442, 0, -0.580, 0.206],             #taget_up_2
+                                [ 0.383, -0.484, -0.568, 0, -0.523, 0.370],             #taget_up_3
+                                [ 0.334, -0.584, -0.389, 0, -0.610, 0.330]])            #taget_up_4 
 
-
-matrix_target_up = np.matrix([  [  0.178, -0.927, -0.323,  0.003, -0.294, -1.326],             #target_up_1
-                                [  0.243, -0.805, -0.523,  0.408, -0.278, -1.645],             #target_up_2
-                                [ -0.012, -0.835, -0.403,  0.176, -0.385,  1.473],             #target_up_3
-                                [  0.270, -0.771, -0.571, -0.575, -0.243,  2.257]])            #target_up_4     
-
-matrix_target_position = np.matrix([ [  0.177, -1.138, -0.251,  0.003, -0.147, -1.367],          #target_position_1
-                                     [  0.243, -1.094, -0.426,  0.408, -0.051, -1.665],          #target_position_2
-                                     [  0.008, -1.129, -0.286,  0.175, -0.111,  1.473],          #target_position_3
-                                     [  0.280, -1.089, -0.451, -0.497, -0.101,  2.136]])         #target_position_4 #MALLLLLLLLLLL
+matrix_target_position = np.matrix([[ 0.238, -1.074, -0.460, 0, -0.042, 0.230],       #target_position_1
+                                    [ 0.206, -1.113, -0.285, 0, -0.183, 0.206],       #target_position_2
+                                    [ 0.383, -1.084, -0.408, 0, -0.083, 0.370],       #target_position_3
+                                    [ 0.334, -1.127, -0.234, 0, -0.220, 0.330]])      #target_position_4
                     
-
-
 origin = matrix_origin.tolist()
 target_up = matrix_target_up.tolist()
 target_position = matrix_target_position.tolist()
 
-n.set_arm_max_velocity(20)  #defines the velocity of the arm
-n.move_joints(home_position)
+# Start executing the planned motion ... 
 
-try:
-    for i in range(4): # Execute the task
-       
-        error = np.random.normal(mean_val, sigma, 6)
-        n.move_joints(origin_up + error)
-        n.move_joints(origin[i] + error)
-        time.sleep(1)
-        n.move_joints(origin_up + error)
-        n.move_joints(target_up[i] + error)
-        n.move_joints(target_position[i] + error)
-        time.sleep(1)
-        n.move_joints(target_up[i] + error)
-    
-except  NiryoOneException  as e:
-    print(e)
+print("\n \n--- Start ---")
 
-print ('\n \nDone. Thank you!')
+rospy.init_node('niryo_one_example_python_api')
+niryo = NiryoOne()
+
+print ('\n \nCalibrating Niryo...\n')
+niryo.calibrate_auto()
+time.sleep(1)
+print ('\n \nCalibration finished !\n')
+niryo.activate_learning_mode(False)
+
+
+if niryo.get_learning_mode() == False:
+
+    try:
+        print ('\n \nStarting the action...\n')
+        niryo.set_arm_max_velocity(40)
+        niryo.move_joints(home_position)
+
+        for i in range(4):
+           
+            niryo.move_joints(origin_up + joint_errors(mean_val, stand_dev))
+            niryo.set_arm_max_velocity(10)
+            print ('\n \nGrabbing block number {}...\n'.format(i+1))
+            niryo.move_joints(origin[i] + joint_errors(mean_val, stand_dev))
+            time.sleep(1)
+            niryo.move_joints(origin_up + joint_errors(mean_val, stand_dev))
+            print ('Moving block to the target {} area...\n'.format(i+1))
+            niryo.set_arm_max_velocity(40)
+            niryo.move_joints(target_up[i] + joint_errors(mean_val, stand_dev))
+            niryo.set_arm_max_velocity(10)
+            niryo.move_joints(target_position[i] + joint_errors(mean_val, stand_dev))
+            print ('Please unattach block {} from the gripper!\n'.format(i+1))
+            time.sleep(2)
+            niryo.set_arm_max_velocity(40)
+            niryo.move_joints(target_up[i] + joint_errors(mean_val, stand_dev))
+            print ('Successfully dropped block number {}!\n'.format(i+1))
+        
+        time.sleep(1)
+        niryo.move_joints(home_position)
+        print ('\n \nSuccess!\n')
+
+    except  NiryoOneException  as e:
+        print(e)
+
+print ("\n \n--- End ---")
