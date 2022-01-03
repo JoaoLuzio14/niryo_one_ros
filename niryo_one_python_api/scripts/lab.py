@@ -27,8 +27,8 @@ and move them to another chosen location.
 
 # Define error parameters (just random error, ignoring joint bias)
 mean_val = 0.0 # Centered Value
-stand_dev = 0.002 # 0.001 < SD < 0.005 for realistic variations
-#P(-0.004 < X < 0.004) = 0.95
+stand_dev = 0.005 # 0.004 < SD < 0.01 for realistic variations
+# P(-0.01 < X < 0.01) = 0.95 (0.01 rad are approximatly 0.57 degrees)
 
 # Define the joint angles for the desired trajectory
 
