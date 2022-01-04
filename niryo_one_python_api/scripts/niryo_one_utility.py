@@ -1,23 +1,16 @@
-# Niryo One utility Functions
+ Niryo One Utility Functions
 import numpy as np
 from numpy.linalg import inv
 import math
 
 '''
 Forward Kinematics for NiryoOne
-Input: Array with 6DOF joint angles
+Input:6DOF joint angles
 Output: 6 Homogeneous Transformation Matrices
 Each matrix gives the position and orientation
 of the 'end_effector' relative to de 'base_link'
 '''
-def ForwardKinematics(thetas):
-	# Separate the Theta Values
-	t1 = thetas[0]
-	t2 = thetas[1]
-	t3 = thetas[2]
-	t4 = thetas[3]
-	t5 = thetas[4]
-	t6 = thetas[5]
+def ForwardKinematics(t1, t2, t3, t4, t5, t6):
 	# Rotation around Z axis
 	tf_01 = np.array([[ math.cos(t1), -math.sin(t1),    0, 0.000],
 					  [ math.sin(t1),  math.cos(t1),    0, 0.000],
@@ -66,8 +59,11 @@ def ForwardKinematics(thetas):
 	tf_15 = np.matmul(tf_12, tf_25)
 	tf_05 = np.matmul(tf_01, tf_15)
 
-	return tf_01, tf_02, tf_03, tf_04, tf_05, tf_06
+	position = np.dot(tf_06, np.transpose(np.array([0, 0, 0, 1])))
+	position = position[0:3]
+	return position
 
+	#return tf_01, tf_02, tf_03, tf_04, tf_05, tf_06
 
 '''
 Simplified Inverse Kinematics for NiryoOne
@@ -75,7 +71,19 @@ Input: Cartesion Pose (X,Y,Z)
 Output: Angles of the first 3 joints
 '''
 def InverseKinematics(X, Y, Z):
-
-	t1 = atan2(Y,X)
-
-	return t1
+	# Fixed Dimensions
+	d = Z-0.183
+	a2 = 0.2345
+	a3 = 0.2452
+	# One of the two solutions
+	t3 = np.arcsin((np.power(a2,2)+np.power(a3,2)-np.power(X,2)-np.power(d,2))/(2*a2*a3))
+	t2 = math.atan2(a3*math.cos(t3)-X, d-a3*math.sin(t3))
+	# Fixed Value
+	t1 = math.atan2(Y, X)
+	# Convertion
+	'''
+	t1 = 180*t1/math.pi
+	t2 = 180*t2/math.pi
+	t3 = 180*t3/math.pi
+	'''
+	return t1, t2, t3
