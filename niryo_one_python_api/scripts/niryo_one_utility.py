@@ -1,12 +1,12 @@
-Niryo One Utility Functions
+# Niryo One Utility Functions
 import numpy as np
 from numpy.linalg import inv
 import math
 
 '''
 Forward Kinematics for NiryoOne
-Input:6DOF joint angles
-Output: 6 Homogeneous Transformation Matrices
+Input: 6DOF joint angles in radians
+Output: Position of the End Effector
 Each matrix gives the position and orientation
 of the 'end_effector' relative to de 'base_link'
 '''
@@ -47,7 +47,7 @@ def ForwardKinematics(t1, t2, t3, t4, t5, t6):
 	tf_26 = np.matmul(tf_23, tf_36)
 	tf_16 = np.matmul(tf_12, tf_26)
 	tf_06 = np.matmul(tf_01, tf_16)
-	# Other Auxiliar TF's 
+	# Other Auxiliar TF's (use if needed)
 	tf_02 = np.matmul(tf_01, tf_12)
 	tf_13 = np.matmul(tf_12, tf_23)
 	tf_03 = np.matmul(tf_01, tf_13)
@@ -62,7 +62,6 @@ def ForwardKinematics(t1, t2, t3, t4, t5, t6):
 	position = np.dot(tf_06, np.transpose(np.array([0, 0, 0, 1])))
 	position = position[0:3]
 	return position
-
 	#return tf_01, tf_02, tf_03, tf_04, tf_05, tf_06
 
 '''
@@ -71,19 +70,28 @@ Input: Cartesion Pose (X,Y,Z)
 Output: Angles of the first 3 joints
 '''
 def InverseKinematics(X, Y, Z):
-	# Fixed Dimensions
+	# Calculate Dimensions
 	d = Z-0.183
-	a2 = 0.2345
-	a3 = 0.2452
+	a2 = 0.210
+	L = 0.2452
+	K = 0.0245
+	R = math.sqrt(np.power(X, 2) + np.power(d, 2))
+	beta = math.atan2(K,L)
+	a3 = math.sqrt(np.power(L,2)+np.power(K,2))
+	# Joint Limits
+	limits = [[ -175.0,  175.0],
+			  [  -90.0,   36.7],
+			  [  -80.0,   90.0]]
 	# One of the two solutions
-	t3 = np.arcsin((np.power(a2,2)+np.power(a3,2)-np.power(X,2)-np.power(d,2))/(2*a2*a3))
-	t2 = math.atan2(a3*math.cos(t3)-X, d-a3*math.sin(t3))
+	t3_aux = np.arcsin((np.power(a2, 2) + np.power(a3, 2) - np.power(R, 2)/(2*a2*a3)))
+	theta3 = t3_aux - beta
+	theta2 = math.atan2(d,X) + np.arccos((np.power(R, 2) + np.power(a2, 2) - np.power(a3, 2))/(2*a2*R)) - math.pi/2
 	# Fixed Value
-	t1 = math.atan2(Y, X)
+	theta1 = math.atan2(Y, X) # -90 < t1 < +90 degree
 	# Convertion
 	'''
 	t1 = 180*t1/math.pi
 	t2 = 180*t2/math.pi
 	t3 = 180*t3/math.pi
 	'''
-	return t1, t2, t3
+	return theta1, theta2, theta3
