@@ -1,4 +1,4 @@
- Niryo One Utility Functions
+Niryo One Utility Functions
 import numpy as np
 from numpy.linalg import inv
 import math
