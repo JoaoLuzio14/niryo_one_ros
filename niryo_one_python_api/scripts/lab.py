@@ -92,28 +92,29 @@ Output: Angles of the 6 joints
 '''
 def InverseKinematics(X, Y, Z):
 
-	# Calculate Dimensions
-	a1 = 0.183
-	d = Z - a1 + 0.0237
-	a2 = 0.210
-	L = 0.2215
-	K = 0.030
-	r = math.sqrt(np.power(X, 2) + np.power(Y, 2)) + 0.0055
-	R = math.sqrt(np.power(r, 2) + np.power(d, 2))
-	beta = math.atan2(K,L)
-	a3 = math.sqrt(np.power(L,2)+np.power(K,2))
+    # Calculate Dimensions
+    a1 = 0.183
+    d = Z - a1 + 0.0237
+    a2 = 0.210
+    L = 0.2215
+    K = 0.030
+    r = math.sqrt(np.power(X, 2) + np.power(Y, 2)) + 0.0055
+    R = math.sqrt(np.power(r, 2) + np.power(d, 2))
+    beta = math.atan2(K,L)
+    a3 = math.sqrt(np.power(L,2)+np.power(K,2))
 
-	# Convenient Solution for the Task
-	theta3 = np.arcsin((np.power(R, 2) - np.power(a2, 2) - np.power(a3, 2))/(2*a2*a3)) - beta
-	theta2 = math.atan2(d,r) + np.arccos((np.power(R, 2) + np.power(a2, 2) - np.power(a3, 2))/(2*a2*R)) - math.pi/2
-	theta5 = np.arccos((np.power(R, 2) + np.power(a3, 2) - np.power(a2, 2))/(2*a3*R)) - math.pi/2 - math.atan2(d,r)
+    # Convenient Solution for the Task
+    theta3 = np.arcsin((np.power(R, 2) - np.power(a2, 2) - np.power(a3, 2))/(2*a2*a3)) - beta
+    theta2 = math.atan2(d,r) + np.arccos((np.power(R, 2) + np.power(a2, 2) - np.power(a3, 2))/(2*a2*R)) - math.pi/2
+    theta5 = np.arccos((np.power(R, 2) + np.power(a3, 2) - np.power(a2, 2))/(2*a3*R)) - math.pi/2 - math.atan2(d,r) + beta
 
-	# Fixed Values
-	theta1 = math.atan2(Y, X) # -90 < t1 < +90 degree
-	theta6 = theta1 # Duo to Simulator Referencial Convencion
-	theta4 = 0.0 # Fixed
+    # Fixed Values
+    theta1 = math.atan2(Y, X) # -90 < t1 < +90 degree
+    theta6 = theta1 # Duo to Simulator Referencial Convencion
+    theta4 = 0.0 # Fixed
 
-	return theta1, theta2, theta3, theta4, theta5, theta6
+    thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
+    return thetas
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -140,8 +141,8 @@ def land(niryo, step, speed, begin, end):
     niryo.set_arm_max_velocity(speed)
 
     while pose[2] > end[2]:
-        pose[0:2] += joint_errors(0, 0.0001)[0:2]
-        niryo.move_pose(*pose)
+        thetas = InverseKinematics(pose[0], pose[1], pose[2])
+        niryo.move_joints(thetas + joint_errors(0.0, 0.005))
         time.sleep(0.01)
         pose[2] -= step
     
