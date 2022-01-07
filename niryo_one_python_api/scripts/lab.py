@@ -99,6 +99,25 @@ def joint_errors(mean, deviation):
 #-----------------------------------------------------------------------------------
 
 '''
+Land the object in a pseudo-vertical trajectory
+Input: step, speed, and start and finish positions
+'''
+def land(niryo, step, speed, begin, end):
+
+    pose = begin
+    pose[2] -= step
+    niryo.set_arm_max_velocity(speed)
+
+    while pose[2] > end[2]:
+        pose[0:2] += joint_errors(0, 0.0001)[0:2]
+        niryo.move_pose(*pose)
+        time.sleep(0.01)
+        pose[2] -= step
+
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+
+'''
 This script will grab the 4 pilled blocks
 and move them to another chosen location.
 '''
@@ -106,7 +125,7 @@ if __name__ == "__main__":
 
     # Define error parameters (just random error, ignoring joint bias)
     mean_val = 0.0 # Centered Value
-    stand_dev = 0.002 # 0.001 < SD < 0.005 for realistic variations
+    stand_dev = 0.005 # 0.001 < SD < 0.005 for realistic variations
     # P(-0.004 < X < 0.004) = 0.95
 
     # Define the joint angles for the desired trajectory
@@ -129,10 +148,22 @@ if __name__ == "__main__":
                                         [ 0.206, -1.113, -0.285, 0, -0.183, 0.206],
                                         [ 0.383, -1.084, -0.408, 0, -0.083, 0.370],
                                         [ 0.334, -1.127, -0.234, 0, -0.220, 0.330]])
+
+    up_pose = np.matrix([[ 0.211,  0.051,  0.167, 0, math.radians(90), 0],
+                         [ 0.245,  0.051,  0.167, 0, math.radians(90), 0],
+                         [ 0.211,  0.085,  0.167, 0, math.radians(90), 0],
+                         [ 0.245,  0.085,  0.167, 0, math.radians(90), 0]])
+
+    down_pose = np.matrix([[ 0.211,  0.051,  0.039, 0, math.radians(90), 0],
+                           [ 0.245,  0.051,  0.039, 0, math.radians(90), 0],
+                           [ 0.211,  0.085,  0.039, 0, math.radians(90), 0],
+                           [ 0.245,  0.085,  0.039, 0, math.radians(90), 0]])
                         
     start = matrix_start.tolist()
     target_up = matrix_target_up.tolist()
     target_position = matrix_target_position.tolist()
+    begin = up_pose.tolist()
+    end = down_pose.tolist()
 
     # Start executing the planned motion ... 
 
@@ -169,7 +200,7 @@ if __name__ == "__main__":
                 print ('Moving block to the target area {}...\n'.format(i+1))
                 niryo.set_arm_max_velocity(10)
                 niryo.move_joints(target_up[i] + joint_errors(mean_val, stand_dev))
-                niryo.set_arm_max_velocity(5)
+                land(niryo, 0.005, 5, begin[i], end[i])
                 niryo.move_joints(target_position[i] + joint_errors(mean_val, stand_dev))
                 pose = ForwardKinematics(target_position[i])
                 print ('Position: X:{} Y:{} Z:{} \n'.format(pose[0], pose[1], pose[2]))
@@ -188,4 +219,4 @@ if __name__ == "__main__":
         except  NiryoOneException  as e:
             print(e)
 
-    print ("\n \n--- End ---\n \nThank you!")
+    print ("\n \n--- End ---\n")
