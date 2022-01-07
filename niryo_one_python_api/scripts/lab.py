@@ -142,7 +142,7 @@ def land(niryo, step, speed, begin, end):
 
     while pose[2] > end[2]:
         thetas = InverseKinematics(pose[0], pose[1], pose[2])
-        niryo.move_joints(thetas + joint_errors(0.0, 0.005))
+        niryo.move_joints(thetas + joint_errors(0.0, 0.001))
         time.sleep(0.01)
         pose[2] -= step
     
